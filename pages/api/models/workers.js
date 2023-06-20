@@ -12,6 +12,9 @@ const workers = connection.define('Workers',{
         unique:true,
         allowNull:false
     },
+    cpf:{
+        type: DataTypes.CHAR,
+    },
     status:{
         type: DataTypes.CHAR,
     }

@@ -3,13 +3,13 @@ import Worker from "./controllers/Work"
 
 export default async function handler(req, res) {
   
-  
+
 
   const {cpf, name} = req.query;
 
 
   const worker = Worker
-  await worker.setInstance(name)
+  await worker.setInstance(name, cpf)
   worker.cpf = cpf
   await worker.cookies()
 

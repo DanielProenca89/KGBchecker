@@ -82,12 +82,12 @@ const Worker= {
         },
 
        
-        async setInstance(name){
+        async setInstance(name, cpf){
             this.workerName = name
             try{
       
             await connection.sync()
-            await workers.create({name:name, status:"Iniciando"})            
+            await workers.create({name:name, status:"Iniciando", cpf:cpf})            
             return true
             }catch{
             return false
