@@ -14,7 +14,12 @@ const preload = connection.define('Preload',{
     },
     free:{
         type: DataTypes.BOOLEAN,
+    },
+    cpf:{
+
+        type: DataTypes.TEXT,
     }
+
 })
 
 export default preload;

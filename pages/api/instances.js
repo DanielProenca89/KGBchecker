@@ -14,8 +14,8 @@ export default async function instances(req, res){
     }
 
     if(req.method == 'DELETE'){
-        console.log(req.body)
-        const id = req.body.id
+       
+        const id = req.query.id
         
         await connection.sync()
         await workers.destroy({where:{id:id}})

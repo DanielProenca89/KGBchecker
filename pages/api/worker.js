@@ -5,15 +5,14 @@ export default async function handler(req, res) {
   
 
 
-  const {cpf, name} = req.query;
+  const {name} = req.query;
 
 
   const worker = Worker
-  await worker.setInstance(name, cpf)
-  worker.cpf = cpf
+  await worker.setInstance(name)
   await worker.cookies()
 
-  await worker.start()
+  worker.start()
   
   res.status(200).json({status:"ok"})
 

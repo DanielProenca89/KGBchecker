@@ -12,7 +12,11 @@ const verified = connection.define('Verified',{
     },
     status:{
         type: DataTypes.CHAR,
+    },
+    cpfreq:{
+        type: DataTypes.TEXT
     }
+
 })
 
 export default verified;

@@ -26,12 +26,15 @@ function base64_encode(file) {
 }*/
 
 const getCaptcha = async (math, img)=>{
-const url = 'http://2captcha.com/in.php';
+
 const apiKey = '9357f496505f8587ff2183f4f96d1157';
+
 const filePath = './public/'+img;
+const filePathAux = './public/ok_'+img;
 const solver = new Solver(apiKey)
 const res = await solver.imageCaptcha(fs.readFileSync(filePath, "base64"))
-console.log(res)
+fs.unlink(filePath,()=>console.log('imagem apagada'))
+fs.unlink(filePathAux, ()=>console.log('imagem auxiliar apagada'))
 return res
 
 }
