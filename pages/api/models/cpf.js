@@ -1,6 +1,6 @@
 import { DataTypes, connection } from './connection'
 
-const verified = connection.define('Verified',{
+const cpf = connection.define('CPF',{
     id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
@@ -8,15 +8,11 @@ const verified = connection.define('Verified',{
         primaryKey: true
     },
     number:{
-        type: DataTypes.CHAR,
-    },
-    status:{
-        type: DataTypes.CHAR,
-    },
-    cpfreq:{
-        type: DataTypes.TEXT
+        type: DataTypes.TEXT,
+        unique:true,
+        allowNull:false
     }
-
+   
 })
 
-export default verified;
+export default cpf;

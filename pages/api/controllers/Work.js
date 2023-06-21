@@ -7,7 +7,9 @@ import verified from '../models/verified';
 import saveCookies from './getCookies'
 import sharp from 'sharp'
 import getProxyList from './getProxy';
+import cpf from '../models/cpf';
 import fs from 'fs'
+import { Sequelize } from 'sequelize';
 
 
 const Worker= {
@@ -19,23 +21,53 @@ const Worker= {
     
 
     async getCpf(){
-        const read = fs.readFileSync('./public/listacpf.txt',"utf8")
-        const cpf = read.split('\n')
-        const change = Math.floor(Math.random() * cpf.length)
-        return cpf[change]
+        const Op = Sequelize.Op
+        const verify = await verified.findAll()
+        const listCpf = verify.length > 0?verify.map(e=>e.dataValues.cpfreq+'\r'):[]
+        console.log(listCpf)
+        const query = await cpf.findOne({where:{number:{[Op.notIn]:listCpf}}})
+
+        if(query){
+        const obj = query.toJSON()
+        console.log(obj)   
+        const number = obj.number.replace('\r', '')
+        return number
+        }else{
+        return null
+        }
+
 
     },
     
     async getBarCode(){
+        try{
         this.data = null;
         await connection.sync();
-        const res = await preload.findOne({where:{free:true}});
+        const res = await preload.findOne({ order:  [
+            Sequelize.fn( 'RANDOM' ),
+          ]
+        } ,{where:{free:true}});
+
+        if(res){
         const data = res.toJSON()
+        
         if(data){
             preload.update({free:false}, {where:{id:data.id}});
             this.data = data;
+            this.cpf = data.cpf;
             return data
         }else{
+            this.data = null
+            return null
+        }
+           
+    
+            }else{
+                this.data = null
+                return null
+            }
+        }catch(erro){
+            console.log(erro)
             this.data = null
             return null
         }
@@ -70,24 +102,27 @@ const Worker= {
         },
 
         async cookies(){
-            await this.setProxy();
-            await saveCookies(this.workerName, this.proxy)
+            const proxy =  await this.setProxy();
+            await saveCookies(this.workerName, proxy)
         },
 
         async setProxy(){
+
             const res = await getProxyList()
-            const change = Math.floor(Math.random() * 51)
+            const change = Math.floor(Math.random() * (res.data.length - 1))
+
             this.proxy = res.data[change]
+            console.log(res.data[change])
             return res.data[change]
         },
 
        
-        async setInstance(name, cpf){
+        async setInstance(name){
             this.workerName = name
             try{
       
             await connection.sync()
-            await workers.create({name:name, status:"Iniciando", cpf:cpf})            
+            await workers.create({name:name, status:"Iniciando"})            
             return true
             }catch{
             return false
@@ -96,12 +131,13 @@ const Worker= {
           
 
         async start(){
+     
 
             const verifyInstance = await workers.findOne({where:{name:this.workerName}})
             const instance = verifyInstance.toJSON()
             if(!instance) browser.close();
             this.id = instance.id
-            const browser = await puppeteer.launch( {headless: false,defaultViewport: null,args: ['--start-maximized', 
+            const browser = await puppeteer.launch( {defaultViewport: null,args: ['--start-maximized', 
             `--proxy-server=${this.proxy.ip}:${this.proxy.port}`] });
 
            const page = await browser.newPage();
@@ -110,6 +146,7 @@ const Worker= {
            for (const cookie of JSON.parse(cookies)) {
            await page.setCookie(cookie);
            }
+
            try{
             await page.goto('https://www.chequelegal.com.br');
           
@@ -125,7 +162,9 @@ const Worker= {
                  await workers.destroy({where:{id:this.id}})
                  browser.close();
             }
+            console.log('barcode',barCode)
             const [a, b, c] = [barCode.number.slice(0,8), barCode.number.slice(8,18), barCode.number.slice(18)];
+            this.barCode = barCode
             const cpfReq = await this.getCpf()
             
             await page.waitForXPath('//*[@id="lbCaptcha"]/table/tbody/tr/td[2]')
@@ -136,9 +175,9 @@ const Worker= {
             const capImage = await this.handleImage(imgname)
             
             const solvedCapatcha = await getCaptcha(false,capImage)
-
+            console.log(cpfReq)
             await page.$eval('input[name="cpfCnpjEmitente"]', input => input.value = null);
-            await page.type('input[name="cpfCnpjEmitente"]', this.cpf);
+            await page.type('input[name="cpfCnpjEmitente"]', barCode.cpf);
 
             await page.$eval('input[name="primeiroCampoCmc7"]', input => input.value = null);
             await page.type('input[name="primeiroCampoCmc7"]', a);
@@ -151,11 +190,11 @@ const Worker= {
             
             await page.$eval('input[name="cpfCnpjInteressado"]', input => input.value = null);
             await page.type('input[name="cpfCnpjInteressado"]', cpfReq);
+
             
 
             await page.waitForSelector('.aceite-label')
-            await page.$eval('input[name="aceiteTermoUso"]', 
-            check => check.checked = true);
+            await page.$eval('input[name="aceiteTermoUso"]', check => check.checked = true);
             
             await new Promise(r => setTimeout(r, 2000))
 
@@ -163,27 +202,41 @@ const Worker= {
 
 
             await page.click('#btEnviar');
-            await page.waitForXPath('//*[@id="errors"]/ul/li')
-            const err = await page.$eval('#errors', (element) => element.textContent);
 
-            if (err){
-            console.log(err)
-                if(err == "Código da Imagem: Caracteres do captcha não foram preenchidos corretamente ou o tempo máximo para preenchimento foi ultrapassado"){
+            await new Promise(r => setTimeout(r, 10000));
+
+            const err = await page.$x('//*[@id="errors"]')
+            const okElement = await page.$x('//*[@id="detalheCheque"]')
+
+            if (err.length > 0){
+                const errText = await page.evaluate(e=>e.textContent, err[0])
+                console.log(errText)
+                if(errText == "Código da Imagem: Caracteres do captcha não foram preenchidos corretamente ou o tempo máximo para preenchimento foi ultrapassado"|| errText == ": Erro inesperado"){
                 await preload.update({free:true}, {where:{id:barCode.id}})
                 }else{
                                
-                await verified.create({number:barCode.number, status:err});
+                await verified.create({number:barCode.number, status:errText,  cpfreq:cpfReq});
 
             }
-            }else{
-                await verified.create({number:barCode.number, status:"Ok"});
-
             }
-            await page.$eval('input[name="btnLimpar"]', bt=> bt.click())
+
+            if(okElement.length > 0){
+                const okText = await page.evaluate(e=>e.textContent, okElement[0])
+                console.log(okText.replace(' ','').replace(/\t/g,'') == '')
+                if(okText.replace('\n','').replace(/\t/g,'') != ''){
+                if(okText.startsWith('Cheque não possui ocorrências')){
+                await verified.create({number:barCode.number, status:'Cheque não possui ocorrências', cpfreq:cpfReq});
+                }else{
+                await verified.create({number:barCode.number, status:okText,  cpfreq:cpfReq});
+                }
+            }
+            }
+
             await browser.close()
             this.next()
         }catch(e){
             console.log(e)
+            await preload.update({free:true}, {where:{id:this.data.id}})
             await browser.close()
             this.next()
         }
