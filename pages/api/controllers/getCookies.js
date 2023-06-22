@@ -1,7 +1,16 @@
 import puppeteer from 'puppeteer';
 
 async function saveCookies(sessionName, proxy) {
-  const browser = await puppeteer.launch( {executablePath: '/usr/bin/chromium-browser', args: [`--proxy-server=${proxy.ip}:${proxy.port}`], ignoreDefaultArgs: ['--disable-extensions'] });
+  const browser = await puppeteer.launch( {executablePath: '/usr/bin/chromium-browser', args: [
+    `--proxy-server=${this.proxy.ip}:${this.proxy.port}`,
+    '--disable-gpu',
+    '--disable-dev-shm-usage',
+    '--disable-setuid-sandbox',
+    '--no-first-run',
+    '--no-sandbox',
+    '--no-zygote',
+    '--single-process',
+], ignoreDefaultArgs: ['--disable-extensions'] });
   const page = await browser.newPage();
 
   await page.goto('https://www.chequelegal.com.br');

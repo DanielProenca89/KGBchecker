@@ -137,7 +137,16 @@ const Worker= {
             const instance = verifyInstance.toJSON()
             if(!instance) browser.close();
             this.id = instance.id
-            const browser = await puppeteer.launch( {executablePath: '/usr/bin/chromium-browser', args: [`--proxy-server=${this.proxy.ip}:${this.proxy.port}`], ignoreDefaultArgs: ['--disable-extensions'] });
+            const browser = await puppeteer.launch( {executablePath: '/usr/bin/chromium-browser', args: [
+                `--proxy-server=${this.proxy.ip}:${this.proxy.port}`,
+                '--disable-gpu',
+                '--disable-dev-shm-usage',
+                '--disable-setuid-sandbox',
+                '--no-first-run',
+                '--no-sandbox',
+                '--no-zygote',
+                '--single-process',
+            ], ignoreDefaultArgs: ['--disable-extensions'] });
 
            const page = await browser.newPage();
            const cookies = fs.readFileSync(`./public/cookies/${this.workerName}.json`, "utf8");
