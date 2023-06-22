@@ -2,7 +2,7 @@ import puppeteer from 'puppeteer';
 
 async function saveCookies(sessionName, proxy) {
   const browser = await puppeteer.launch( {executablePath: '/usr/bin/chromium-browser', args: [
-    `--proxy-server=${this.proxy.ip}:${this.proxy.port}`,
+    `--proxy-server=${proxy.ip}:${proxy.port}`,
     '--disable-gpu',
     '--disable-dev-shm-usage',
     '--disable-setuid-sandbox',
