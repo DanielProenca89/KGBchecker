@@ -1,7 +1,7 @@
 import puppeteer from 'puppeteer';
 
 async function saveCookies(sessionName, proxy) {
-  const browser = await puppeteer.launch( { args: [ `--proxy-server=${proxy.ip}:${proxy.port}` ]});
+  const browser = await puppeteer.launch( {executablePath: '/usr/bin/chromium-browser', args: [`--proxy-server=${proxy.ip}:${proxy.port}`], ignoreDefaultArgs: ['--disable-extensions'] });
   const page = await browser.newPage();
 
   await page.goto('https://www.chequelegal.com.br');
