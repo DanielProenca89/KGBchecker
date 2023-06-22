@@ -1,5 +1,5 @@
-import { connection } from "./models/connection";
-import verified from "./models/verified";
+import { connection } from "../models/connection";
+import verified from "../models/verified";
 
 
 export default async function deleteResults(){
