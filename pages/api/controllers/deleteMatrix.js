@@ -5,6 +5,6 @@ import preload from '../models/preload'
 
 export default async function deleteMatrix(){
     await connection.sync();
-    await preload.destroy()
+    await preload.destroy({where: {}, truncate: true})
     return true
 }
