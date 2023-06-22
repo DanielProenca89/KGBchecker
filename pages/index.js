@@ -3,6 +3,8 @@ import { io } from "socket.io-client";
 export default function Home() {
   
   const [loading, setLoading]=useState(false)
+  const [deletingMatrix, setDeletingMatrix] = useState(false)
+  const [deletingResults, setDeletingResults] = useState(false)
   const [progress, setProgress] = useState(0)
   const [results, setResults] = useState([])
   const [instances, setInstances] = useState([])
@@ -11,12 +13,13 @@ export default function Home() {
   const [matrix, setMatrix] = useState("")
   
   const load= async ()=>{
-  const socket = io('http://localhost:3001')
+  const socket = io('http://149.56.91.175:3001')
   if(matrix.length == 30 && cpf.length > 0){
   setLoading(true)
   socket.on('loading', msg => setProgress(msg+'%'))
   await fetch(`api/load?matrix=${matrix}&cpf=${cpf}`)
   setLoading(false)
+  setProgress(0)
   }else{
     window.alert('Confira sua matriz')
   }
@@ -53,12 +56,35 @@ export default function Home() {
 
   }
 
+  async function deleteMatrix(){
+    if(window.confirm("Isso apagará todas as matrizes geradas. Deseja prosseguir?")){
+      setDeletingMatrix(true)
+      await fetch('api/deleteMatrix')
+      setDeletingMatrix(false)
+
+
+    }
+  }
+
+
+  async function deleteResults(){
+    if(window.confirm("Isso apagará todas os resultados. Deseja prosseguir?")){
+      setDeletingResults(true)
+      await fetch('api/deleteResults')
+      setDeletingResults(false)
+
+
+    }
+  }
+
+
   useEffect(()=>{
 
     setInterval(()=>{
       getResults()
+      getInstances()
     },3000)
-    getInstances()
+    
 
   },[])
 
@@ -78,7 +104,10 @@ return(
   <input style={{display:"block"}} onChange={(e)=>setCpf(e.target.value)} type="number"/>
 
 
-  <button onClick={()=>load()}>{loading?'Carregando... '+ progress:'Gerar números'}</button>  
+  <button onClick={()=>load()}>{loading?'Carregando... '+ progress:'Gerar números'}</button>
+  <button onClick={()=>deleteMatrix()}>{deletingMatrix?'Deletando. Aguarde...':'Limpar matrizes'}</button>
+  
+
 </div>
 
 
@@ -97,6 +126,7 @@ return(
 </div>
 <span style={{margin:"1em"}}>Resultados: <strong>{results.length}</strong></span>
 <textarea style={{width:"100%", height:"200px", overflow:"scroll", margin:"1em"}} value={results?.map(e=> [e.number.slice(0,8), e.number.slice(8,18), e.number.slice(18)].join(' ') +"  "+ e.status).join('\n')}></textarea>
+<button onClick={()=>deleteResults()}>{deletingResults?'Deletando. Aguarde...':'Limpar resultados'}</button>
 <br/>
 <div style={{display:"grid", gridTemplateColumns:"25% 25% 25% 25%", columnGap:"1em" ,margin:"1em"}}>
   {instances?.map((e,i)=> <div key={i} style={{width:"100%", padding:"2em", textAlign:"center", border:"1px solid #000"}}><div><span><strong>{e.name}</strong></span></div><button style={{display:"block"}} onClick={()=>deleteInstances(e.id)}>Deletar</button></div>)}
