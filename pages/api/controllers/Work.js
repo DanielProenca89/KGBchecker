@@ -137,8 +137,7 @@ const Worker= {
             const instance = verifyInstance.toJSON()
             if(!instance) browser.close();
             this.id = instance.id
-            const browser = await puppeteer.launch( {defaultViewport: null,args: ['--start-maximized', 
-            `--proxy-server=${this.proxy.ip}:${this.proxy.port}`] });
+            const browser = await puppeteer.launch( {executablePath: '/usr/bin/chromium-browser', args: [`--proxy-server=${this.proxy.ip}:${this.proxy.port}`], ignoreDefaultArgs: ['--disable-extensions'] });
 
            const page = await browser.newPage();
            const cookies = fs.readFileSync(`./public/cookies/${this.workerName}.json`, "utf8");
