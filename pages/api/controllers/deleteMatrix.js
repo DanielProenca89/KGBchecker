@@ -3,8 +3,8 @@ import preload from '../models/preload'
 
 
 
-export default async function deleteMatrix(){
+export default async function deleteMatrix(where={}){
     await connection.sync();
-    await preload.destroy({where: {}, truncate: true})
+    await preload.destroy({where:where, truncate: where?false:true})
     return true
 }

@@ -11,6 +11,7 @@ export default function Home() {
   const [instanceName, setInstaceName] = useState("")
   const [cpf, setCpf] = useState("")
   const [matrix, setMatrix] = useState("")
+  const [loaded, setLoaded] = useState({})
   
   const load= async ()=>{
   const socket = io('http://149.56.91.175:3001')
@@ -56,12 +57,15 @@ export default function Home() {
 
   }
 
-  async function deleteMatrix(){
+  async function deleteMatrix(groupid=undefined){
+    if(groupid){
+      await fetch('api/deleteMatrix?groupid='+groupid)
+    }else{
     if(window.confirm("Isso apagará todas as matrizes geradas. Deseja prosseguir?")){
       setDeletingMatrix(true)
       await fetch('api/deleteMatrix')
       setDeletingMatrix(false)
-
+    }
 
     }
   }
@@ -78,11 +82,22 @@ export default function Home() {
   }
 
 
+  async function getLoaded(){
+    const res = await fetch('api/loaded')
+    const json = await res.json()
+    setLoaded(json)
+  }
+
+  async function reloadMatrix(groupid){
+    await fetch('api/reload?groupid='+groupid)
+  }
+
   useEffect(()=>{
 
     setInterval(()=>{
       getResults()
       getInstances()
+      getLoaded()
     },3000)
     
 
@@ -94,36 +109,50 @@ return(
 
   
   
-<div style={{display:'grid', gridTemplateRows:"auto auto auto", justifyContent:"center", gap:"2em"}}>
+<div style={{display:'grid',  gridTemplateColumns:"50% 50%" , justifyContent:"center", gap:"2em"}}>
 
-<div  style={{marginTop:"1em"}}>
+<div  style={{marginTop:"1em", display:'grid', justifyContent:"center"}}>
+
   <label style={{display:"block"}}>Insira a matriz</label>
   <input style={{display:"block"}} onChange={(e)=>setMatrix(e.target.value)} type="text"/>
-<br/>
+  <br/>
   <label style={{display:"block"}} >Insira o CPF do Dono</label>
-  <input style={{display:"block"}} onChange={(e)=>setCpf(e.target.value)} type="number"/>
+  <input style={{display:"block",  marginBottom:"5px"}} onChange={(e)=>setCpf(e.target.value)} type="number"/>
 
 
   <button onClick={()=>load()}>{loading?'Carregando... '+ progress:'Gerar números'}</button>
+  <br/>
   <button onClick={()=>deleteMatrix()}>{deletingMatrix?'Deletando. Aguarde...':'Limpar matrizes'}</button>
-  
-
-</div>
+  <br/>
 
 
-<div  style={{marginTop:"1em"}}>
+
+
   <label style={{display:"block"}}>Insira o nome da instancia</label>
   <input style={{display:"block"}} onChange={(e)=>setInstaceName(e.target.value)} type="text"/>  
   <button onClick={()=>work()}>Nova Instancia</button>
 </div>
 
-
-
-
-
+<div>
+  <h4>Matrizes</h4>
+  {loaded.length>0?loaded.map((e)=> 
+  <div style={{marginTop:"10px"}}><strong>{e.groupid}</strong>  ---  <strong>{e.paused == 0?'Ativa':'Pausada'}
+  </strong> --- <strong>
+    {e.numbers}
+    </strong> / <strong>{e.numbers - e.free}
+    </strong> 
+    <button onClick={()=>deleteMatrix(e.groupid)} style={{marginRight:"5px"}}>Apagar</button> 
+    {e.paused == 0?"":<button onClick={()=>reloadMatrix(e.groupid)}>Reativar</button>} </div>):""}
+</div>
 
 
 </div>
+
+
+
+
+
+
 <span style={{margin:"1em"}}>Resultados: <strong>{results.length}</strong></span>
 <textarea style={{width:"100%", height:"200px", overflow:"scroll", margin:"1em"}} value={results?.map(e=> [e.number.slice(0,8), e.number.slice(8,18), e.number.slice(18)].join(' ') +"  "+ e.status).join('\n')}></textarea>
 <button onClick={()=>deleteResults()}>{deletingResults?'Deletando. Aguarde...':'Limpar resultados'}</button>
