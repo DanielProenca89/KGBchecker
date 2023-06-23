@@ -148,7 +148,7 @@ class Worker {
 
     async start() {
 
-
+        await this.isBreakTime()
         const verifyInstance = await workers.findOne({ where: { name: this.workerName } })
 
         if (!verifyInstance) {
