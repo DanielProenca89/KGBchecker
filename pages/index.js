@@ -160,7 +160,7 @@ return(
   <input style={{display:"block",  marginBottom:"5px"}} onChange={(e)=>setInstaceName(e.target.value)} type="text"/>
   <label style={{display:"block"}}>Selecione a Matriz</label>  
   <select style={{display:"block",  marginBottom:"5px"}} onChange={(e)=>setGroup(e.target.value)} type="text">
-  {loaded.length > 0?loaded.map(e=><option value={e.groupid}>{e.id}</option>):""}
+  {loaded.length > 0?loaded.map((e,i)=><option key={i} value={e.groupid}>{e.id}</option>):""}
   </select>  
   
   <button onClick={()=>work()}>Nova Instancia</button>
