@@ -109,7 +109,7 @@ class Worker {
     }
 
     async setProxy() {
-
+        await this.isBreakTime()
         const res = await getProxyList()
         const change = Math.floor(Math.random() * (res.data.length - 1))
 
