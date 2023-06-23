@@ -12,13 +12,17 @@ export default function Home() {
   const [cpf, setCpf] = useState("")
   const [matrix, setMatrix] = useState("")
   const [loaded, setLoaded] = useState({})
+  const [group, setGroup] = useState("")
   
   const load= async ()=>{
   const socket = io('http://149.56.91.175:3001')
-  if(matrix.length == 30 && cpf.length > 0){
+  let mt = matrix.replaceAll(' ', '')
+  console.log(mt.length)
+  console.log(mt)
+  if(mt.length == 30 && cpf.length > 0){
   setLoading(true)
   socket.on('loading', msg => setProgress(msg+'%'))
-  await fetch(`api/load?matrix=${matrix}&cpf=${cpf}`)
+  await fetch(`api/load?matrix=${mt}&cpf=${cpf}`)
   setLoading(false)
   setProgress(0)
   }else{
@@ -29,7 +33,7 @@ export default function Home() {
 
   const work= async ()=>{
     if(instanceName.length > 1){
-    await fetch(`api/worker?name=${instanceName}`)
+    await fetch(`api/worker?name=${instanceName}&groupid=${group}`)
     await getInstances()
     }else{
       window.alert('Confira os dados e tente novamente')
@@ -70,6 +74,30 @@ export default function Home() {
     }
   }
 
+  async function formatNumber(val){
+    if(val.replace(' ','') != ''){
+    
+    let [a,b,c] = [val.replace(' ','').slice(0, 8), val.replace(' ','').slice(8, 18), val.replace(' ','').slice(18)];
+    if(a.length == 8){
+      
+      a = a + ' '
+
+    }
+    if(b.length == 10 && val.replace(' ', '').length){
+
+      b = b + ' '
+
+    }
+    if(c.length > 0){
+      c = c.replace(' ', '')
+
+    }
+
+    setMatrix(a+b+c)
+    }else{
+      setMatrix('')
+    }
+  }
 
   async function deleteResults(){
     if(window.confirm("Isso apagará todas os resultados. Deseja prosseguir?")){
@@ -109,12 +137,12 @@ return(
 
   
   
-<div style={{display:'grid',  gridTemplateColumns:"50% 50%" , justifyContent:"center", gap:"2em"}}>
+<div style={{display:'grid',  gridTemplateColumns:"50% 50%" , gap:"2em"}}>
 
 <div  style={{marginTop:"1em", display:'grid', justifyContent:"center"}}>
 
   <label style={{display:"block"}}>Insira a matriz</label>
-  <input style={{display:"block"}} onChange={(e)=>setMatrix(e.target.value)} type="text"/>
+  <input style={{display:"block"}} value={matrix} onChange={(e)=>formatNumber(e.target.value)} type="text"/>
   <br/>
   <label style={{display:"block"}} >Insira o CPF do Dono</label>
   <input style={{display:"block",  marginBottom:"5px"}} onChange={(e)=>setCpf(e.target.value)} type="number"/>
@@ -129,19 +157,24 @@ return(
 
 
   <label style={{display:"block"}}>Insira o nome da instancia</label>
-  <input style={{display:"block"}} onChange={(e)=>setInstaceName(e.target.value)} type="text"/>  
+  <input style={{display:"block",  marginBottom:"5px"}} onChange={(e)=>setInstaceName(e.target.value)} type="text"/>
+  <label style={{display:"block"}}>Selecione a Matriz</label>  
+  <select style={{display:"block",  marginBottom:"5px"}} onChange={(e)=>setGroup(e.target.value)} type="text">
+  {loaded.length > 0?loaded.map(e=><option value={e.groupid}>{e.id}</option>):""}
+  </select>  
+  
   <button onClick={()=>work()}>Nova Instancia</button>
 </div>
 
 <div>
   <h4>Matrizes</h4>
   {loaded.length>0?loaded.map((e,i)=> 
-  <div key={i} style={{marginTop:"10px"}}><strong>{e.groupid}</strong>  ---  <strong>{e.paused == 0?'Ativa':'Pausada'}
+  <div key={i} style={{marginTop:"10px"}}><strong>{e.id}</strong> - <strong>{e.groupid}</strong>  ---  <strong>{e.paused == 0?'Ativa':'Pausada'}
   </strong> --- <strong>
     {e.numbers}
     </strong> / <strong>{e.numbers - e.free}
     </strong> 
-    <button onClick={()=>deleteMatrix(e.groupid)} style={{marginRight:"5px"}}>Apagar</button> 
+    <button onClick={()=>deleteMatrix(e.groupid)} style={{marginRight:"5px", marginLeft:"10px"}}>Apagar</button> 
     {e.paused == 0?"":<button onClick={()=>reloadMatrix(e.groupid)}>Reativar</button>} </div>):""}
 </div>
 

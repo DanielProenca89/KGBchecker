@@ -19,6 +19,7 @@ class Worker {
         this.proxy = {}
         this.page = {}
         this.CPF = ""
+        this.groupid = ""
     }
 
     async getCpf() {
@@ -44,11 +45,7 @@ class Worker {
         try {
             this.data = null;
             await connection.sync();
-            const res = await preload.findOne({ where: { [Op.and]: [{ free: true }, { paused: false }] } }, {
-                order: [
-                    Sequelize.fn('RANDOM'),
-                ]
-            });
+            const res = await preload.findOne({ where: { [Op.and]: [{ free: true }, { paused: false }, {groupid:this.groupid}]}});
 
             if (res) {
                 const data = res.toJSON()
@@ -119,8 +116,9 @@ class Worker {
     }
 
 
-    async setInstance(name) {
+    async setInstance(name, groupid) {
         this.workerName = name
+        this.groupid = groupid
         try {
 
             await connection.sync()
@@ -157,13 +155,13 @@ class Worker {
         };
         const instance = verifyInstance.toJSON()
         this.id = instance.id
-        const browser = await puppeteer.launch({executablePath: '/usr/bin/chromium-browser', args: [
+        const browser = await puppeteer.launch({/*executablePath: '/usr/bin/chromium-browser',*/ args: [
             `--proxy-server=${this.proxy.ip}:${this.proxy.port}`,
             '--disable-gpu',
             '--disable-dev-shm-usage',
             '--disable-setuid-sandbox',
             '--no-first-run',
-            '--no-sandbox',
+            /*'--no-sandbox',*/
             '--no-zygote',
             '--single-process',
         ], ignoreDefaultArgs: ['--disable-extensions'] });
@@ -240,7 +238,7 @@ class Worker {
             if (err.length > 0) {
 
                 const errText = await page.evaluate(e => e.textContent, err[0])
-                if (errText.replace('\n', '').replace(/\t/g, '').replace(' ', '') != '') {
+                if (errText.replaceAll('\n', '').replaceAll(/\t/g, '').replaceAll(' ', '') != '') {
                     console.log(errText)
                     if (errText == "Código da Imagem: Caracteres do captcha não foram preenchidos corretamente ou o tempo máximo para preenchimento foi ultrapassado" || errText == ": Erro inesperado") {
                         await preload.update({ free: true }, { where: { id: barCode.id } })
@@ -258,7 +256,7 @@ class Worker {
             if (okElement.length > 0) {
                 const okText = await page.evaluate(e => e.textContent, okElement[0])
                 console.log(okText.replace(' ', '').replace(/\t/g, '') == '')
-                if (okText.replace('\n', '').replace(/\t/g, '').replace(' ', '') != '') {
+                if (okText.replaceAll('\n', '').replaceAll(/\t/g, '').replaceAll(' ', '') != '') {
                     if (okText.startsWith('Cheque não possui ocorrências')) {
                         await verified.create({ number: barCode.number, status: 'Cheque não possui ocorrências', cpfreq: cpfReq, groupid: barCode.groupid });
                     } else {
