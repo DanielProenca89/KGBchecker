@@ -135,8 +135,8 @@ return(
 
 <div>
   <h4>Matrizes</h4>
-  {loaded.length>0?loaded.map((e)=> 
-  <div style={{marginTop:"10px"}}><strong>{e.groupid}</strong>  ---  <strong>{e.paused == 0?'Ativa':'Pausada'}
+  {loaded.length>0?loaded.map((e,i)=> 
+  <div key={i} style={{marginTop:"10px"}}><strong>{e.groupid}</strong>  ---  <strong>{e.paused == 0?'Ativa':'Pausada'}
   </strong> --- <strong>
     {e.numbers}
     </strong> / <strong>{e.numbers - e.free}
