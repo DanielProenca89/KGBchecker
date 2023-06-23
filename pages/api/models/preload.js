@@ -18,7 +18,16 @@ const preload = connection.define('Preload',{
     cpf:{
 
         type: DataTypes.TEXT,
+    },
+    groupid:{
+        type: DataTypes.TEXT,
+        
+    },
+    paused:{
+        type: DataTypes.BOOLEAN,
+        defaultValue:false
     }
+
 
 })
 

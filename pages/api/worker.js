@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   const {name} = req.query;
 
 
-  const worker = Worker
+  const worker = new Worker
   await worker.setInstance(name)
   await worker.cookies()
 

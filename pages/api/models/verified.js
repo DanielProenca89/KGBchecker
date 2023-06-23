@@ -15,6 +15,9 @@ const verified = connection.define('Verified',{
     },
     cpfreq:{
         type: DataTypes.TEXT
+    },
+    groupid:{
+        type: DataTypes.TEXT,
     }
 
 })

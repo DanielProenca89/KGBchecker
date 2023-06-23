@@ -32,7 +32,7 @@ const createNumber = async (matrix=[], cpf)=>{
     const numbers = _getRandom()
     const len = numbers.length;
     let progress = 0
-    await connection.sync({force:true})
+    await connection.sync()
     numbers.forEach(async element => {
         
         let [b,c] = element
@@ -46,7 +46,8 @@ const createNumber = async (matrix=[], cpf)=>{
         await preload.create({
             number:cmc7,
             free:true,
-            cpf:cpf
+            cpf:cpf,
+            groupid:matrix.join('')
             })
         
         io.emit('loading', ((progress / len)*100).toFixed(0))
