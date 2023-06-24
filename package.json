@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@mantine/core": "^6.0.14",
     "2captcha": "^3.0.7",
     "next": "13.4.6",
     "node-capmonster": "^0.4.2",

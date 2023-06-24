@@ -19,7 +19,7 @@ class Worker {
         this.proxy = {}
         this.page = {}
         this.CPF = ""
-        this.groupid = ""
+        this.groupid = []
     }
 
     async getCpf() {
@@ -45,7 +45,7 @@ class Worker {
         try {
             this.data = null;
             await connection.sync();
-            const res = await preload.findOne({ where: { [Op.and]: [{ free: true }, { paused: false }, {groupid:this.groupid}]}});
+            const res = await preload.findOne({ where: { [Op.and]: [{ free: true }, { paused: false }, {groupid:{[Op.in]:this.groupid}}]}});
 
             if (res) {
                 const data = res.toJSON()
@@ -155,7 +155,7 @@ class Worker {
         };
         const instance = verifyInstance.toJSON()
         this.id = instance.id
-        const browser = await puppeteer.launch({executablePath: '/usr/bin/chromium-browser', args: [
+        const browser = await puppeteer.launch({/*executablePath: '/usr/bin/chromium-browser',*/ args: [
             `--proxy-server=${this.proxy.ip}:${this.proxy.port}`,
             '--disable-gpu',
             '--disable-dev-shm-usage',
