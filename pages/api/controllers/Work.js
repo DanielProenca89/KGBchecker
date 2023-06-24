@@ -155,7 +155,7 @@ class Worker {
         };
         const instance = verifyInstance.toJSON()
         this.id = instance.id
-        const browser = await puppeteer.launch({/*executablePath: '/usr/bin/chromium-browser',*/ args: [
+        const browser = await puppeteer.launch({executablePath: '/usr/bin/chromium-browser', args: [
             `--proxy-server=${this.proxy.ip}:${this.proxy.port}`,
             '--disable-gpu',
             '--disable-dev-shm-usage',
